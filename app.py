@@ -16,7 +16,7 @@ def predict():
         message = data.get('message')
         if not message:
             return jsonify({'error': 'No message provided'}), 400
-
+    # error
         #Create temporary input file
         temp_input_file = "temp_input.json"
         with open(temp_input_file, 'w') as f:
