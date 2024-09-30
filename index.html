@@ -33,7 +33,6 @@ body {
 <h1>Chatbot</h1>
 
 <div id="chatbox">
-    <!-- Initial message -->
     <div class="message bot">Hello! How can I assist you today?</div> 
 </div>
 
@@ -48,7 +47,7 @@ function sendMessage() {
     displayMessage(message, 'user');
 
     $.ajax({
-        url: '/predict',
+        url: '/predict', 
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ message: message }),
