@@ -1,56 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Google AI Platform Chatbot</title>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<title>Chatbot</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <style>
-/* ... your CSS ... */
+body {
+    font-family: sans-serif;
+}
+#chatbox {
+    width: 400px;
+    height: 400px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    overflow-y: scroll;
+}
+.message {
+    margin-bottom: 10px;
+    padding: 5px;
+    border-radius: 5px;
+}
+.user {
+    background-color: #eee;
+    text-align: right;
+}
+.bot {
+    background-color: #ccf;
+}
 </style>
 </head>
 <body>
-<div id="chat-container">
-  <h2>Google AI Platform Chatbot</h2>
-  <div id="chat-messages"></div>
-  <form id="chat-form">
-    <input type="text" id="message" placeholder="Type your message...">
-    <button type="submit">Send</button>
-  </form>
+
+<h1>Chatbot</h1>
+
+<div id="chatbox">
+    <!-- Initial message -->
+    <div class="message bot">Hello! How can I assist you today?</div> 
 </div>
 
+<input type="text" id="user-input" placeholder="Type your message...">
+<button onclick="sendMessage()">Send</button>
+
 <script>
-$(document).ready(function() {
-  const apiUrl = "/predict"; // Points to your Flask server
+function sendMessage() {
+    var message = $('#user-input').val();
+    $('#user-input').val(''); 
 
-  $("#chat-form").submit(function(event) {
-    event.preventDefault();
-    const message = $("#message").val();
-    if (!message.trim()) return;
-
-    displayMessage("user-message", "You: " + message);
-    $("#message").val("");
+    displayMessage(message, 'user');
 
     $.ajax({
-      url: apiUrl,
-      method: "POST",
-      data: JSON.stringify({ message }),
-      contentType: "application/json",
-      success: function(response) {
-        displayMessage("bot-message", "Bot: " + response.prediction);
-      },
-      error: function(error) {
-        let errorMessage = "Error: Could not get prediction.";
-        if (error.responseJSON && error.responseJSON.error) {
-          errorMessage = "Error: " + error.responseJSON.error;
-        } else if (error.statusText) {
-          errorMessage = "Error: " + error.statusText;
+        url: '/predict',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ message: message }),
+        success: function(response) {
+            displayMessage(response.prediction, 'bot'); 
+        },
+        error: function(error) {
+            console.error("Error during prediction:", error);
+            displayMessage("Sorry, an error occurred. Please try again later.", 'bot');
         }
-        displayMessage("error-message", errorMessage);
-      }
     });
-  });
+}
 
-  // ... your displayMessage function ...
-});
+function displayMessage(message, sender) {
+    var messageElement = $('<div>').addClass('message ' + sender).text(message);
+    $('#chatbox').append(messageElement);
+    $('#chatbox').scrollTop($('#chatbox')[0].scrollHeight); 
+}
 </script>
+
 </body>
 </html>
