@@ -47,7 +47,7 @@ function sendMessage() {
     displayMessage(message, 'user');
 
     $.ajax({
-        url: 'http://34.70.61.204:5000/predict', 
+        url: 'http://10.128.0.4:5000/predict', 
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ message: message }),
