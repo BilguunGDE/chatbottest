@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gemma API Chatbot</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $("#chat-form").submit(function(event) {
+        event.preventDefault();
+        var message = $("#message").val();
+        $("#chat-messages").append("<div class='user-message'>You: " + message + "</div>");
+        $("#message").val("");
+
+        $.ajax({
+          url: "https://api.gemma.ai/v1/chat", // Replace with your actual Gemma API endpoint
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer YOUR_API_KEY" // Replace with your actual Gemma API key
+          },
+          data: JSON.stringify({
+            "message": message
+          }),
+          contentType: "application/json",
+          success: function(response) {
+            $("#chat-messages").append("<div class='bot-message'>Bot: " + response.message + "</div>");
+          },
+          error: function(error) {
+            console.error("Error:", error);
+            $("#chat-messages").append("<div class='error-message'>Error: Could not process your request.</div>");
+          }
+        });
+      });
+    });
+  </script>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    #chat-container {
+      width: 500px;
+      margin: 0 auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    #chat-messages {
+      height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .user-message {
+      background-color: #eee;
+      padding: 5px;
+      margin-bottom: 5px;
+      border-radius: 5px;
+    }
+    .bot-message {
+      background-color: #ccf;
+      padding: 5px;
+      margin-bottom: 5px;
+      border-radius: 5px;
+    }
+    .error-message {
+      background-color: #fdd;
+      padding: 5px;
+      margin-bottom: 5px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <h2>Gemma API Chatbot</h2>
+    <div id="chat-messages"></div>
+    <form id="chat-form">
+      <input type="text" id="message" placeholder="Type your message...">
+      <button type="submit">Send</button>
+    </form>
+  </div>
+</body>
+</html>
