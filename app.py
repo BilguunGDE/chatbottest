@@ -9,6 +9,13 @@ ENDPOINT_ID = os.environ.get("8525491115984420864") # Get from environment varia
 PROJECT_ID = os.environ.get("954563389883") # Get from environment variables
 REGION = "us-central1" #Change if necessary
 
+
+@app.route('/test', methods=['POST'])
+def test():
+    print('sug')
+    return 'sug'
+
+
 @app.route('/predict', methods=['POST'])
 def predict():
     try:

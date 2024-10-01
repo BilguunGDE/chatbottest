@@ -1,0 +1,8 @@
+{
+    "instances": [
+        {
+            "prompt": "Hello I want to travel Mongolia next month. Can you suggest to me travel?",
+            "max_tokens": 1000
+        }
+    ]
+}
