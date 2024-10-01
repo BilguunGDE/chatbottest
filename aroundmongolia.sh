@@ -1,5 +1,5 @@
-ENDPOINT_ID="8525491115984420864"
-PROJECT_ID="954563389883"
+ENDPOINT_ID="" #Your end point must be in here
+PROJECT_ID="" #Your project id must be in here
 INPUT_DATA_FILE="gemma-input-hello.json"
 OUTPUT_DATA_FILE="gemma-output-hello.json"
 
