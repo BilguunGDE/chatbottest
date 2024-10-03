@@ -1,59 +1,80 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, after_this_request, render_template
+from flask_cors import CORS
 import os
 import subprocess
+import json
 
 app = Flask(__name__)
+CORS(app)
 
-# --- Google Cloud AI Platform configuration ---
-ENDPOINT_ID = os.environ.get("8525491115984420864") # Get from environment variables
-PROJECT_ID = os.environ.get("954563389883") # Get from environment variables
-REGION = "us-central1" #Change if necessary
+@app.route('/')
+def home():
+    print('home')
+    rendered = render_template('index.html')
+    return rendered
 
 
 @app.route('/test', methods=['POST'])
 def test():
-    print('sug')
-    return 'sug'
+    # Get user input from the request
+    data = request.json
+    user_input = data.get('input', '')
+    
+    # Prepare JSON input for Gemma
+    gemma_input = {
+        "instances": [{
+            "prompt": user_input,
+            "max_tokens": 1000
+        }]
+    }
 
-
-@app.route('/predict', methods=['POST'])
-def predict():
+    # Write the input to gemma-input-hello.json
+    with open('gemma-input.json', 'w') as input_file:
+        json.dump(gemma_input, input_file)
+    
+    # Run aroundmongolia.sh
     try:
-        data = request.get_json()
-        message = data.get('message')
-        if not message:
-            return jsonify({'error': 'No message provided'}), 400
-    # error
-        #Create temporary input file
-        temp_input_file = "temp_input.json"
-        with open(temp_input_file, 'w') as f:
-            json.dump({"instances": [{"text": message}]}, f) #Adjust to your model's input format
+        subprocess.run(['bash', 'aroundmongolia.sh'], check=True)
+    except subprocess.CalledProcessError as e:
+        return jsonify({'response': 'Error running the model'}), 500
 
-        #Construct the curl command
-        command = [
-            "curl",
-            "-X", "POST",
-            "-H", "Authorization: Bearer $(gcloud auth print-access-token)",
-            "-H", "Content-Type: application/json",
-            f"https://{REGION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{REGION}/endpoints/{ENDPOINT_ID}:predict",
-            "-d", f"@{temp_input_file}"
-        ]
+    # Read the response from gemma-output-hello.json
+    try:
+        with open('gemma-output.json', 'r') as output_file:
+            gemma_output_string = output_file.read()
 
-        #Execute the curl command and capture output
-        process = subprocess.run(command, capture_output=True, text=True)
-        if process.returncode != 0:
-            return jsonify({'error': process.stderr}), 500
+        # Debugging: Print the raw content for verification
+        print("Raw JSON content:", gemma_output_string)
 
-        #Parse response from the curl command
-        response_json = json.loads(process.stdout)
-        prediction = response_json['predictions'][0]['text']  # Adapt to your model's output
+        # Parse the JSON string correctly
+        gemma_output = json.loads(gemma_output_string)
 
+        # Extract the first prediction text from the parsed JSON
+        full_prediction_text = gemma_output.get('predictions', ['No response'])[0]
+        
+        # Find and extract content after "Output:" in the string
+        output_index = full_prediction_text.find("Output:")
+        if output_index != -1:
+            response_text = full_prediction_text[output_index + len("Output:"):].strip()
+        else:
+            response_text = full_prediction_text
 
-        os.remove(temp_input_file) #Clean up temporary file
-        return jsonify({'prediction': prediction})
+    except FileNotFoundError:
+        print("Error: gemma-output-hello.json file not found.")
+        response_text = 'Error: Output file not found.'
+
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+        response_text = 'Error: Invalid JSON format in output file.'
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        # Catch all other exceptions
+        print(f"Unexpected error: {e}")
+        response_text = 'Error: An unexpected error occurred.'
+
+    # Return the response to the client
+    return jsonify({'response': response_text})
+
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000) #Choose your preferred port

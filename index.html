@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemma Chatbot</title>
+    <title>Gemma AI Sprint</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -53,7 +53,7 @@
 </head>
 <body>
     <div id="chat-container">
-        <h2>Gemma Chatbot</h2>
+        <h2>Gemma Chatbot for AI Sprint</h2>
         <div id="chat-box"></div>
         <input type="text" id="user-input" placeholder="Type your message...">
         <button id="send-btn">Send</button>
@@ -75,14 +75,28 @@
 
         // Function to call shell script and get response
         async function getBotResponse(input) {
-            try {
-                const response = await fetch('http://localhost:5000/predict', {
+            try {                
+                const response = await fetch('/test', {
                     method: 'POST',
+                    mode: 'cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ input: input })
                 });
+
+                // Check if the response is ok
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
                 const data = await response.json();
-                addMessage(data.response, 'bot');
+                console.log(data)
+                // Ensure that response contains the expected key
+                if (data.response) {
+                    addMessage(data.response, 'bot');
+                } else {
+                    addMessage('Unexpected response format from server.', 'bot');
+                    console.error('Unexpected response format:', data);
+                }
             } catch (error) {
                 addMessage('Error getting response from Gemma.', 'bot');
                 console.error(error);
